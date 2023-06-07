@@ -2,7 +2,10 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const generateId = () => {
+var morgan = require('morgan')
+app.use(morgan('tiny'))
+
+const generateId = () => { //Why are we using the arrow notation here?
   return Math.floor(Math.random() * 2147483647);
 };
 
@@ -98,6 +101,12 @@ app.delete("/api/persons/:id", (request, response) => {
 
   response.status(204).end();
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 const PORT = 3001;
 app.listen(PORT, () => {
