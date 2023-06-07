@@ -2,6 +2,10 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+const generateId = () => {
+  return Math.floor(Math.random() * 2147483647);
+};
+
 let persons = [
   {
     id: 1,
@@ -35,7 +39,8 @@ app.get("/info", (request, response) => {
   responseHTML += "<br></br>"
 
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleString(); //This is detailed enough
+  //const formattedDate = currentDate.toLocaleString(); //This is detailed enough
+  const formattedDate = currentDate.toString(); //more detailed?
   responseHTML += formattedDate
 
   response.send(responseHTML);
@@ -43,6 +48,38 @@ app.get("/info", (request, response) => {
 
 app.get("/api/persons", (request, response) => {
   response.json(persons);
+});
+
+app.post("/api/persons", (request, response) => {
+  const body = request.body;
+
+  if (!body.name) {
+    return response.status(400).json({
+      error: "Person must have a name!",
+    });
+  }
+  if (!body.number) {
+    return response.status(400).json({
+      error: "Person must have a phone number!",
+    });
+  }
+  for (const person of persons) {
+    if(person.name === body.name){
+      return response.status(400).json({
+        error: "Person already exists in the phonebook!",
+      });
+    }
+  }
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number,
+  };
+
+  persons = persons.concat(person);
+
+  response.json(person);
 });
 
 app.get("/api/persons/:id", (request, response) => {
