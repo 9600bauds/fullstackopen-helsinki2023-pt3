@@ -3,7 +3,13 @@ const app = express();
 app.use(express.json());
 
 var morgan = require('morgan')
-app.use(morgan('tiny'))
+morgan.token('posted-content', function getId (req) {
+  if(req.method !== 'POST'){
+    return ''
+  }
+  return JSON.stringify(req.body)
+})
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :posted-content'))
 
 const generateId = () => { //Why are we using the arrow notation here?
   return Math.floor(Math.random() * 2147483647);
