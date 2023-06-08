@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+
 app.use(express.json());
 
 var morgan = require('morgan')
@@ -10,6 +11,9 @@ morgan.token('posted-content', function getId (req) {
   return JSON.stringify(req.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :posted-content'))
+
+const cors = require('cors')
+app.use(cors())
 
 const generateId = () => { //Why are we using the arrow notation here?
   return Math.floor(Math.random() * 2147483647);
