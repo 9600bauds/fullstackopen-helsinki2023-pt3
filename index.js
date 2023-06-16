@@ -2,20 +2,26 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
+app.use(express.static("build"));
 
-var morgan = require('morgan')
-morgan.token('posted-content', function getId (req) {
-  if(req.method !== 'POST'){
-    return ''
+var morgan = require("morgan");
+morgan.token("posted-content", function getId(req) {
+  if (req.method !== "POST") {
+    return "";
   }
-  return JSON.stringify(req.body)
-})
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :posted-content'))
+  return JSON.stringify(req.body);
+});
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :posted-content"
+  )
+);
 
-const cors = require('cors')
-app.use(cors())
+const cors = require("cors");
+app.use(cors());
 
-const generateId = () => { //Why are we using the arrow notation here?
+const generateId = () => {
+  //Why are we using the arrow notation here?
   return Math.floor(Math.random() * 2147483647);
 };
 
@@ -49,12 +55,12 @@ app.get("/", (request, response) => {
 app.get("/info", (request, response) => {
   let responseHTML = ""; //Does JS have stringbuilders?
   responseHTML += "Phonebook has info for " + persons.length + " people.";
-  responseHTML += "<br></br>"
+  responseHTML += "<br></br>";
 
   const currentDate = new Date();
   //const formattedDate = currentDate.toLocaleString(); //This is detailed enough
   const formattedDate = currentDate.toString(); //more detailed?
-  responseHTML += formattedDate
+  responseHTML += formattedDate;
 
   response.send(responseHTML);
 });
@@ -77,7 +83,7 @@ app.post("/api/persons", (request, response) => {
     });
   }
   for (const person of persons) {
-    if(person.name === body.name){
+    if (person.name === body.name) {
       return response.status(400).json({
         error: "Person already exists in the phonebook!",
       });
@@ -113,10 +119,10 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
+  response.status(404).send({ error: "unknown endpoint" });
+};
 
-app.use(unknownEndpoint)
+app.use(unknownEndpoint);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
