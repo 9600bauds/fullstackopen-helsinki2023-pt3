@@ -3,3 +3,4 @@ start.bat
 node_modules
 .env
 *.bat
+package-lock.json
