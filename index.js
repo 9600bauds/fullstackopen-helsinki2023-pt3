@@ -23,42 +23,38 @@ app.use(cors());
 
 const Person = require("./models/person");
 
-const generateId = () => {
-  //Why are we using the arrow notation here?
-  return Math.floor(Math.random() * 2147483647);
-};
-
-let persons = []; //I don't even need this??
-
 app.get("/", (request, response) => {
   response.send("How's this for self documenting?");
 });
 
 app.get("/info", (request, response) => {
   let responseHTML = ""; //Does JS have stringbuilders?
-  responseHTML += "Phonebook has info for " + persons.length + " people.";
-  responseHTML += "<br></br>";
+  Person.find({}).then((result) => {
+    responseHTML += "Phonebook has info for " + result.length + " people.";
+    responseHTML += "<br></br>";
 
-  const currentDate = new Date();
-  //const formattedDate = currentDate.toLocaleString(); //This is detailed enough
-  const formattedDate = currentDate.toString(); //more detailed?
-  responseHTML += formattedDate;
+    const currentDate = new Date();
+    //const formattedDate = currentDate.toLocaleString(); //This is detailed enough
+    const formattedDate = currentDate.toString(); //more detailed?
+    responseHTML += formattedDate;
 
-  response.send(responseHTML);
+    response.send(responseHTML);
+  });
 });
 
-app.get("/api/persons", (request, response) => {
+app.get("/api/persons", (request, response, next) => {
   Person.find({})
     .then((persons) => {
       response.json(persons);
     })
     .catch((error) => {
       console.log("Could not fetch persons!", error.message);
+      next(error);
     });
 });
 
-app.post("/api/persons", (request, response) => {
-  const body = request.body;
+app.post("/api/persons", (request, response, next) => {
+  const body = request.body; //Needs sanitization
 
   if (!body.name) {
     return response.status(400).json({
@@ -70,39 +66,63 @@ app.post("/api/persons", (request, response) => {
       error: "Person must have a phone number!",
     });
   }
-  /*for (const person of persons) {
-    if (person.name === body.name) {
-      return response.status(400).json({
-        error: "Person already exists in the phonebook!",
-      });
-    }
-  }*/ //Forget about this for now.
 
-  //ID is automatically generated
-  const person = new Person({
+  const personPojo = {
     name: body.name,
     number: body.number,
-  });
+  };
 
-  //persons = persons.concat(person); //I don't understand why this isn't needed.
-  person
+  //ID is automatically generated
+  const newPerson = new Person(personPojo);
+  newPerson
     .save()
     .then((savedPerson) => {
       response.json(savedPerson);
     })
     .catch((error) => {
       console.log("Could not save new person!", error.message);
+      next(error);
     });
 });
 
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body; //Needs sanitization
 
-  if (!person) {
-    return response.status(404).end();
+  if (!body.name) {
+    return response.status(400).json({
+      error: "Person must have a name!",
+    });
   }
-  response.json(person);
+  if (!body.number) {
+    return response.status(400).json({
+      error: "Person must have a phone number!",
+    });
+  }
+
+  const personPojo = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(request.params.id, personPojo, { new: true })
+    .then((updatedPerson) => {
+      response.json(updatedPerson);
+    })
+    .catch((error) => next(error));
+});
+
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (!person) {
+        return response.status(404).end();
+      }
+      response.json(person);
+    })
+    .catch((error) => {
+      console.log(error);
+      next(error);
+    });
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
@@ -121,15 +141,15 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.error(error.message);
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'ID could not be parsed!' })
-  } 
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "ID could not be parsed!" });
+  }
 
-  next(error)
-}
-app.use(errorHandler)
+  next(error);
+};
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
