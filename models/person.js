@@ -13,17 +13,45 @@ mongoose
     console.log("error connecting to MongoDB:", error.message);
   });
 
+const phoneNumberValidators = [
+  {
+    validator: function (v) {
+      return v.length >= 8;
+    },
+    message: "Phone number must be at least 8 characters in length!", //apparently counting the hyphen?
+  },
+  {
+    validator: function (v) {
+      return !/[^0-9-]/.test(v);
+    },
+    message: "Phone number may not contain anything except numbers and a dash!",
+  },
+  {
+    validator: function (v) {
+      return /^\d*-\d*$/.test(v);
+    },
+    message: "Phone number must contain exactly one dash!",
+  },
+  {
+    validator: function (v) {
+      return /^\d{2,3}-/.test(v);
+    },
+    message:
+      "Phone number must start with exactly 2 or 3 numbers before the dash!",
+  },
+];
 const personSchema = new mongoose.Schema({
   id: Number,
   name: {
     type: String,
     minLength: 3,
-    required: true
+    required: true,
   },
   number: {
     type: String,
     minLength: 3,
-    required: true
+    required: true,
+    validate: phoneNumberValidators,
   },
 });
 
