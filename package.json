@@ -10,6 +10,7 @@
     "deploy": "fly deploy",
     "deploy:full": "npm run build:ui && npm run deploy",
     "logs:prod": "fly logs",
+    "lint": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.2.14",
+    "eslint": "^8.43.0",
     "nodemon": "^2.0.22"
   }
 }

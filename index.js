@@ -1,37 +1,37 @@
-require("dotenv").config();
-const express = require("express");
+require('dotenv').config();
+const express = require('express');
 const app = express();
 
 app.use(express.json());
-app.use(express.static("build"));
+app.use(express.static('build'));
 
-var morgan = require("morgan");
-morgan.token("posted-content", function getId(req) {
-  if (req.method !== "POST") {
-    return "";
+var morgan = require('morgan');
+morgan.token('posted-content', function getId(req) {
+  if (req.method !== 'POST') {
+    return '';
   }
   return JSON.stringify(req.body);
 });
 app.use(
   morgan(
-    ":method :url :status :res[content-length] - :response-time ms :posted-content"
+    ':method :url :status :res[content-length] - :response-time ms :posted-content'
   )
 );
 
-const cors = require("cors");
+const cors = require('cors');
 app.use(cors());
 
-const Person = require("./models/person");
+const Person = require('./models/person');
 
-app.get("/", (request, response) => {
-  response.send("How's this for self documenting?");
+app.get('/', (request, response) => {
+  response.send('How\'s this for self documenting?');
 });
 
-app.get("/info", (request, response) => {
-  let responseHTML = ""; //Does JS have stringbuilders?
+app.get('/info', (request, response) => {
+  let responseHTML = ''; //Does JS have stringbuilders?
   Person.find({}).then((result) => {
-    responseHTML += "Phonebook has info for " + result.length + " people.";
-    responseHTML += "<br></br>";
+    responseHTML += 'Phonebook has info for ' + result.length + ' people.';
+    responseHTML += '<br></br>';
 
     const currentDate = new Date();
     //const formattedDate = currentDate.toLocaleString(); //This is detailed enough
@@ -42,18 +42,18 @@ app.get("/info", (request, response) => {
   });
 });
 
-app.get("/api/persons", (request, response, next) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({})
     .then((persons) => {
       response.json(persons);
     })
     .catch((error) => {
-      console.log("Could not fetch persons!", error.message);
+      console.log('Could not fetch persons!', error.message);
       next(error);
     });
 });
 
-app.post("/api/persons", (request, response, next) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body; //Needs sanitization
 
   const personPojo = {
@@ -69,12 +69,12 @@ app.post("/api/persons", (request, response, next) => {
       response.json(savedPerson);
     })
     .catch((error) => {
-      console.log("Could not save new person!", error.message);
+      console.log('Could not save new person!', error.message);
       next(error);
     });
 });
 
-app.put("/api/persons/:id", (request, response, next) => {
+app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body; //Needs sanitization
 
   const personPojo = {
@@ -85,7 +85,7 @@ app.put("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndUpdate(request.params.id, personPojo, {
     new: true,
     runValidators: true,
-    context: "query",
+    context: 'query',
   })
     .then((updatedPerson) => {
       response.json(updatedPerson);
@@ -93,7 +93,7 @@ app.put("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/api/persons/:id", (request, response, next) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
       if (!person) {
@@ -107,9 +107,9 @@ app.get("/api/persons/:id", (request, response, next) => {
     });
 });
 
-app.delete("/api/persons/:id", (request, response, next) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => {
@@ -118,14 +118,14 @@ app.delete("/api/persons/:id", (request, response, next) => {
 });
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "Unknown endpoint!" });
+  response.status(404).send({ error: 'Unknown endpoint!' });
 };
 app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "ID could not be parsed!" });
-  } else if (error.name === "ValidationError") {
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'ID could not be parsed!' });
+  } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.errors });
   }
 
